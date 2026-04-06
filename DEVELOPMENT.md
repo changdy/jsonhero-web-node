@@ -14,7 +14,7 @@ You most likely already have git installed on your machine, but if not, you can 
 
 #### Node.js 16
 
-Even though JSON Hero runs on [Cloudflare Workers](https://workers.cloudflare.com), which isn't a Node.js environment, you will still need Node.js 16 to run it locally. The recommended way to install Node.js is to download a pre-built package from the [Node.js website](https://nodejs.org/en/)
+JSON Hero now runs on Node.js, so you will need Node.js 16 or higher to run it locally. The recommended way to install Node.js is to download a pre-built package from the [Node.js website](https://nodejs.org/en/)
 
 #### NPM
 
@@ -70,7 +70,7 @@ Start the development server:
 npm start
 ```
 
-You should now be able to access your local JSON Hero server on [localhost:8787](http://localhost:8787)
+You should now be able to access your local JSON Hero server on [localhost:3000](http://localhost:3000)
 
 > **Note** JSON documents created locally are not persisted across server restarts
 
@@ -78,6 +78,12 @@ You should now be able to access your local JSON Hero server on [localhost:8787]
 
 We currently use [OpenGraph Ninja](https://opengraph.ninja/) to power some of the Preview URL functionality.
 
-### Deploying to Cloudflare
+### Deploying JSON Hero
 
-_Coming Soon_
+To deploy JSON Hero to your own server:
+
+1. Build the application: `npm run build`
+2. Start the server: `npm start`
+3. The server runs on port 3000 by default (set PORT environment variable to change)
+
+For production deployment, consider using PM2 or similar process managers to keep the server running.

@@ -1,40 +1,10 @@
-## Deploying to Cloudflare
+## Self-Hosting JSON Hero
 
-### Install and login to wrangler
+JSON Hero can now be self-hosted using Node.js. After building the application, you can run it with:
+
 ```bash
-npm install -g wrangler
-wrangler login
+npm run build
+npm start
 ```
 
-### Create service
-Go to workers tab from your [cloudflare profile](https://dash.cloudflare.com/profile) and create a new worker. Use HTTP Handler as service type. The name of worker must match the `name` field in `wrangler.toml`.
-
-### Setup wrangler.toml
-Edit the following variables in `wrangler.toml` and `wrangler.toml.dev`:
-- `account_id`: Get account id by using
-    ```bash
-    wrangler whoami
-    ```
-- `kv_namespaces`: Run the following comands to create a new KV namespace.
-    ```bash
-    wrangler kv:namespace create DOCUMENTS # gives namespace id
-    wrangler kv:namespace create DOCUMENTS --preview # gives preview id for namespace
-    ```
-    Replace current entry for `kv_namespaces` as:
-    ```toml
-    kv_namespaces = [
-    { binding = "DOCUMENTS", id = <YOUR_ID>, preview_id = <YOUR_PREVIEW_ID> }
-    ]
-    ```
-
-### Configure Environment Variables
-Set `SESSION_SECRET` environment for worker.
-```bash
-wrangler secret put SESSION_SECRET
-```
-Optionally set other secrets listed at the end of `wrangler.toml`.
-
-### Publish worker
-```bash
-wrangler publish
-```
+The server will start on port 3000 by default (configurable via PORT environment variable).
