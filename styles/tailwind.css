@@ -19,6 +19,11 @@
   }
 }
 
+/* Eye icon for path preview */
+.after\:bg-eye-icon::after {
+  background-image: var(--eye-icon-url);
+}
+
 /* Custom Scrollbar Styles */
 .custom-scrollbar::-webkit-scrollbar {
   width: 0.75rem;

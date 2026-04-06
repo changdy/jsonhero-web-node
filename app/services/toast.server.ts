@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { createCookieSessionStorage, Session } from "remix";
+import { createCookieFactory, createCookieSessionStorageFactory, Session } from "@remix-run/server-runtime";
 
 export type ToastMessage = {
   message: string;
@@ -9,6 +9,13 @@ export type ToastMessage = {
 };
 
 const ONE_YEAR = 1000 * 60 * 60 * 24 * 365;
+
+const createCookie = createCookieFactory({
+  sign: (value) => value,
+  unsign: (value) => value
+});
+
+const createCookieSessionStorage = createCookieSessionStorageFactory(createCookie);
 
 export const { commitSession, getSession } = createCookieSessionStorage({
   cookie: {

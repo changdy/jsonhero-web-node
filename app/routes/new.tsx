@@ -1,4 +1,4 @@
-import { json, LoaderFunction, redirect } from "remix";
+import { json, LoaderFunction, redirect } from "@remix-run/server-runtime";
 import invariant from "tiny-invariant";
 import { sendEvent } from "~/graphJSON.server";
 import {

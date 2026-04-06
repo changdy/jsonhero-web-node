@@ -1,13 +1,5 @@
-import {
-  ActionFunction,
-  LoaderFunction,
-  MetaFunction,
-  Outlet,
-  redirect, ThrownResponse, useCatch,
-  useLoaderData,
-  useLocation,
-  useParams,
-} from "remix";
+import { ActionFunction, LoaderFunction, MetaFunction, redirect, ThrownResponse,  } from "@remix-run/server-runtime";
+import { Outlet, useCatch, useLoaderData, useLocation, useParams } from "@remix-run/react";
 import invariant from "tiny-invariant";
 import { deleteDocument, getDocument, JSONDocument } from "~/jsonDoc.server";
 import { JsonDocProvider } from "~/hooks/useJsonDoc";

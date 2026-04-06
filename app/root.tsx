@@ -1,15 +1,6 @@
-import {
-  Links,
-  LiveReload,
-  LoaderFunction,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLoaderData,
-  useLocation,
-} from "remix";
-import type { MetaFunction } from "remix";
+import { LoaderFunction,  } from "@remix-run/server-runtime";
+import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration, useLoaderData, useLocation } from "@remix-run/react";
+import type { MetaFunction } from "@remix-run/server-runtime";
 import clsx from "clsx";
 import {
   NonFlashOfWrongThemeEls,
