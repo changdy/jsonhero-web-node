@@ -84,7 +84,26 @@ app.all("*", (req, res, next) => {
         response.body.pipe(res);
       } else if (typeof response.body.getReader === "function") {
         // Web ReadableStream → convert to Node.js Readable and pipe
-        stream.Readable.fromWeb(response.body).pipe(res);
+        const reader = response.body.getReader();
+        const nodeStream = new stream.Readable({
+          read() {}
+        });
+
+        const pump = () => {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              nodeStream.push(null);
+            } else {
+              nodeStream.push(Buffer.from(value));
+              pump();
+            }
+          }).catch(err => {
+            nodeStream.emit('error', err);
+          });
+        };
+
+        pump();
+        nodeStream.pipe(res);
       } else {
         res.end();
       }
