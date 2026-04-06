@@ -3,7 +3,7 @@ import invariant from "tiny-invariant";
 import { sendEvent } from "~/graphJSON.server";
 import { updateDocument } from "~/jsonDoc.server";
 
-export const action: ActionFunction = async ({ params, request, context }) => {
+export const action: ActionFunction = async ({ params, request }) => {
   invariant(params.id, "expected params.id");
 
   const title = (await request.formData()).get("title");
@@ -15,13 +15,11 @@ export const action: ActionFunction = async ({ params, request, context }) => {
 
     if (!document) return json({ error: "No document with that slug" });
 
-    context.waitUntil(
-      sendEvent({
-        type: "update-doc",
-        id: document.id,
-        title,
-      })
-    );
+    sendEvent({
+      type: "update-doc",
+      id: document.id,
+      title,
+    });
 
     return json(document);
   } catch (error) {

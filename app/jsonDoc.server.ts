@@ -1,3 +1,5 @@
+import { LRUCache } from "lru-cache";
+import { randomBytes } from "crypto";
 import { customRandom } from "nanoid";
 import safeFetch from "./utilities/safeFetch";
 import createFromRawXml from "./utilities/xml/createFromRawXml";
@@ -27,6 +29,19 @@ export type CreateJsonOptions = {
 };
 
 export type JSONDocument = RawJsonDocument | UrlJsonDocument;
+
+// LRU cache: max 500 entries, default TTL 24h
+// Stored on global so it survives hot-reload require cache purges in development
+declare global {
+  var __documentsCache: LRUCache<string, string> | undefined;
+}
+
+const DOCUMENTS: LRUCache<string, string> =
+  global.__documentsCache ??
+  (global.__documentsCache = new LRUCache<string, string>({
+    max: 500,
+    ttl: 1000 * 60 * 60 * 24,
+  }));
 
 export async function createFromUrlOrRawJson(
   urlOrJson: string,
@@ -72,10 +87,9 @@ export async function createFromUrl(
     readOnly: options?.readOnly ?? false,
   };
 
-  await DOCUMENTS.put(docId, JSON.stringify(doc), {
-    expirationTtl: options?.ttl ?? undefined,
-    metadata: options?.metadata ?? undefined,
-  });
+  const setOptions = options?.ttl ? { ttl: options.ttl * 1000 } : {};
+  DOCUMENTS.set(docId, JSON.stringify(doc), setOptions);
+  console.log(`[cache] stored url doc id=${docId} size=${DOCUMENTS.size}`);
 
   return doc;
 }
@@ -95,10 +109,10 @@ export async function createFromRawJson(
   };
 
   JSON.parse(contents);
-  await DOCUMENTS.put(docId, JSON.stringify(doc), {
-    expirationTtl: options?.ttl ?? undefined,
-    metadata: options?.metadata ?? undefined,
-  });
+
+  const setOptions = options?.ttl ? { ttl: options.ttl * 1000 } : {};
+  DOCUMENTS.set(docId, JSON.stringify(doc), setOptions);
+  console.log(`[cache] stored raw doc id=${docId} size=${DOCUMENTS.size}`);
 
   return doc;
 }
@@ -106,7 +120,8 @@ export async function createFromRawJson(
 export async function getDocument(
   slug: string
 ): Promise<JSONDocument | undefined> {
-  const doc = await DOCUMENTS.get(slug);
+  const doc = DOCUMENTS.get(slug);
+  console.log(`[cache] get id=${slug} found=${!!doc} size=${DOCUMENTS.size}`);
 
   if (!doc) return;
 
@@ -123,13 +138,13 @@ export async function updateDocument(
 
   const updated = { ...document, title };
 
-  await DOCUMENTS.put(slug, JSON.stringify(updated));
+  DOCUMENTS.set(slug, JSON.stringify(updated));
 
   return updated;
 }
 
 export async function deleteDocument(slug: string): Promise<void> {
-  await DOCUMENTS.delete(slug);
+  DOCUMENTS.delete(slug);
 }
 
 function createId(): string {
@@ -137,9 +152,7 @@ function createId(): string {
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
     12,
     (bytes: number): Uint8Array => {
-      const array = new Uint8Array(bytes);
-      crypto.getRandomValues(array);
-      return array;
+      return new Uint8Array(randomBytes(bytes));
     }
   );
   return nanoid();

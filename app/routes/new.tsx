@@ -7,7 +7,7 @@ import {
   CreateJsonOptions,
 } from "~/jsonDoc.server";
 
-export let loader: LoaderFunction = async ({ request, context }) => {
+export let loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const jsonUrl = url.searchParams.get("url");
   const base64EncodedJson = url.searchParams.get("j");
@@ -45,15 +45,13 @@ export let loader: LoaderFunction = async ({ request, context }) => {
 
     const doc = await createFromUrl(jsonURL, title ?? jsonURL.href, options);
 
-    context.waitUntil(
-      sendEvent({
-        type: "create",
-        from: "url",
-        hostname: jsonURL.hostname,
-        id: doc.id,
-        source: url.searchParams.get("utm_source") ?? url.hostname,
-      })
-    );
+    sendEvent({
+      type: "create",
+      from: "url",
+      hostname: jsonURL.hostname,
+      id: doc.id,
+      source: url.searchParams.get("utm_source") ?? url.hostname,
+    });
 
     return redirect(`/j/${doc.id}`);
   }
@@ -65,14 +63,12 @@ export let loader: LoaderFunction = async ({ request, context }) => {
       options
     );
 
-    context.waitUntil(
-      sendEvent({
-        type: "create",
-        from: "base64",
-        id: doc.id,
-        source: url.searchParams.get("utm_source"),
-      })
-    );
+    sendEvent({
+      type: "create",
+      from: "base64",
+      id: doc.id,
+      source: url.searchParams.get("utm_source"),
+    });
 
     return redirect(`/j/${doc.id}`);
   }

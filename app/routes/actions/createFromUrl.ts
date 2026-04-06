@@ -13,7 +13,7 @@ type CreateFromUrlError = {
   jsonUrl?: boolean;
 };
 
-export let action: ActionFunction = async ({ request, context }) => {
+export let action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const toastCookie = await getSession(request.headers.get("cookie"));
   const jsonUrl = formData.get("jsonUrl");
@@ -45,15 +45,13 @@ export let action: ActionFunction = async ({ request, context }) => {
 
     const requestUrl = new URL(request.url);
 
-    context.waitUntil(
-      sendEvent({
-        type: "create",
-        from: "urlOrJson",
-        id: doc.id,
-        source:
-          requestUrl.searchParams.get("utm_source") ?? requestUrl.hostname,
-      })
-    );
+    sendEvent({
+      type: "create",
+      from: "urlOrJson",
+      id: doc.id,
+      source:
+        requestUrl.searchParams.get("utm_source") ?? requestUrl.hostname,
+    });
 
     return redirect(`/j/${doc.id}`);
   } catch (e) {
@@ -69,7 +67,7 @@ export let action: ActionFunction = async ({ request, context }) => {
   }
 };
 
-export let loader: LoaderFunction = async ({ request, context }) => {
+export let loader: LoaderFunction = async ({ request }) => {
   const url = new URL(request.url);
   const jsonUrl = url.searchParams.get("jsonUrl");
 
@@ -83,15 +81,13 @@ export let loader: LoaderFunction = async ({ request, context }) => {
 
   const doc = await createFromUrl(jsonURL, jsonURL.href);
 
-  context.waitUntil(
-    sendEvent({
-      type: "create",
-      from: "url",
-      hostname: jsonURL.hostname,
-      id: doc.id,
-      source: url.searchParams.get("utm_source") ?? url.hostname,
-    })
-  );
+  sendEvent({
+    type: "create",
+    from: "url",
+    hostname: jsonURL.hostname,
+    id: doc.id,
+    source: url.searchParams.get("utm_source") ?? url.hostname,
+  });
 
   return redirect(`/j/${doc.id}`);
 };

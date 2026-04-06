@@ -5,8 +5,10 @@ module.exports = {
   appDirectory: "app",
   assetsBuildDirectory: "public/build",
   publicPath: "/build/",
-  serverBuildTarget: "cloudflare-workers",
+  serverBuildTarget: "node-cjs",
   serverBuildPath: "build/index.js",
   devServerBroadcastDelay: 1000,
   ignoredRouteFiles: [".*"],
+  // Bundle ESM-only packages into the server CJS build
+  serverDependenciesToBundle: [/^@jsonhero\//, /^lodash-es/, /^nanoid/],
 };

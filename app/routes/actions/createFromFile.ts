@@ -8,7 +8,7 @@ type CreateFromFileError = {
   rawJson?: boolean;
 };
 
-export const action: ActionFunction = async ({ request, context }) => {
+export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
   const filename = formData.get("filename");
   const rawJson = formData.get("rawJson");
@@ -29,14 +29,12 @@ export const action: ActionFunction = async ({ request, context }) => {
 
   const url = new URL(request.url);
 
-  context.waitUntil(
-    sendEvent({
-      type: "create",
-      from: "file",
-      id: doc.id,
-      source: url.searchParams.get("utm_source") ?? url.hostname,
-    })
-  );
+  sendEvent({
+    type: "create",
+    from: "file",
+    id: doc.id,
+    source: url.searchParams.get("utm_source") ?? url.hostname,
+  });
 
   return redirect(`/j/${doc.id}`);
 };

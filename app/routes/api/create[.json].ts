@@ -17,7 +17,7 @@ export const loader: LoaderFunction = async ({ request }) => {
   }
 };
 
-export const action: ActionFunction = async ({ request, context }) => {
+export const action: ActionFunction = async ({ request }) => {
   const url = new URL(request.url);
 
   const { title, content, ttl, readOnly } = await request.json();
@@ -50,15 +50,13 @@ export const action: ActionFunction = async ({ request, context }) => {
 
   url.searchParams.delete("utm_source");
 
-  context.waitUntil(
-    sendEvent({
-      type: "create",
-      from: "url",
-      hostname: url.hostname,
-      id: doc.id,
-      source,
-    })
-  );
+  sendEvent({
+    type: "create",
+    from: "url",
+    hostname: url.hostname,
+    id: doc.id,
+    source,
+  });
 
   return json(
     { id: doc.id, title, location: url.toString() },

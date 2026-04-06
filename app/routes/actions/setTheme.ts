@@ -4,7 +4,7 @@ import { getThemeSession } from "~/theme.server";
 import { isTheme } from "~/components/ThemeProvider";
 import { sendEvent } from "~/graphJSON.server";
 
-export const action: ActionFunction = async ({ request, context }) => {
+export const action: ActionFunction = async ({ request }) => {
   const themeSession = await getThemeSession(request);
   const requestText = await request.text();
   const form = new URLSearchParams(requestText);
@@ -19,12 +19,10 @@ export const action: ActionFunction = async ({ request, context }) => {
 
   themeSession.setTheme(theme);
 
-  context.waitUntil(
-    sendEvent({
-      type: "set-theme",
-      theme,
-    })
-  );
+  sendEvent({
+    type: "set-theme",
+    theme,
+  });
 
   return json(
     { success: true },

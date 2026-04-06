@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { createCookieSessionStorage, Session } from "remix";
 
 export type ToastMessage = {
@@ -16,7 +17,7 @@ export const { commitSession, getSession } = createCookieSessionStorage({
     httpOnly: true,
     sameSite: "lax",
     maxAge: ONE_YEAR,
-    secrets: [SESSION_SECRET],
+    secrets: [process.env.SESSION_SECRET ?? "default-dev-secret"],
     secure: true,
   },
 });
@@ -30,7 +31,7 @@ export function setSuccessMessage(
     message,
     title,
     type: "success",
-    id: crypto.randomUUID(),
+    id: randomUUID(),
   });
 }
 
@@ -43,6 +44,6 @@ export function setErrorMessage(
     message,
     title,
     type: "error",
-    id: crypto.randomUUID(),
+    id: randomUUID(),
   });
 }
