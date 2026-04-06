@@ -42,7 +42,6 @@ export const meta: MetaFunction = ({ location }) => {
 
 import styles from "./tailwind.css";
 import { getThemeSession } from "./theme.server";
-import { getStarCount } from "./services/github.server";
 import { StarCountProvider } from "./components/StarCountProvider";
 import { PreferencesProvider } from "~/components/PreferencesProvider";
 
@@ -58,7 +57,7 @@ export type LoaderData = {
 
 export const loader: LoaderFunction = async ({ request }) => {
   const themeSession = await getThemeSession(request);
-  const starCount = await getStarCount();
+  const starCount = 666;
   const themeOverride = getThemeFromRequest(request);
 
   const data: LoaderData = {
