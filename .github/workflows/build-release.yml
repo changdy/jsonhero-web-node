@@ -1,0 +1,68 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            IS_PRERELEASE="false"
+          else
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+            VERSION="build-${SHORT_SHA}"
+            IS_PRERELEASE="true"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "is_prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
+
+      - name: Package artifacts
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARCHIVE_NAME="jsonhero-web-node-dist-${VERSION}.tar.gz"
+          echo "Packaging artifacts as ${ARCHIVE_NAME}..."
+          tar -czf "${ARCHIVE_NAME}" build/ public/ server.js node_modules/
+          echo "Archive size: $(du -h "${ARCHIVE_NAME}" | cut -f1)"
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version == github.ref_name && format('Release {0}', steps.version.outputs.version) || format('Build {0} ({1})', steps.version.outputs.version, github.event.head_commit.timestamp) }}
+          prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
+          body: |
+            ## Build Info
+            - **Version**: ${{ steps.version.outputs.version }}
+            - **Commit**: ${{ github.sha }}
+            - **Trigger**: ${{ github.event_name }}
+            - **Branch**: ${{ github.ref_name }}
+          files: |
+            jsonhero-web-node-dist-*.tar.gz
