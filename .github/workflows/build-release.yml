@@ -34,14 +34,12 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION="${{ github.ref_name }}"
-            IS_PRERELEASE="false"
           else
             SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
             VERSION="build-${SHORT_SHA}"
-            IS_PRERELEASE="true"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-          echo "is_prerelease=${IS_PRERELEASE}" >> $GITHUB_OUTPUT
+          echo "is_prerelease=false" >> $GITHUB_OUTPUT
 
       - name: Package artifacts
         run: |
