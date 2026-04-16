@@ -5,36 +5,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "pwa-chrome",
+      "type": "chrome",
       "request": "launch",
-      "name": "Launch Chrome against localhost with document",
-      "url": "http://localhost:8787",
-      "webRoot": "${workspaceFolder}/app"
+      "name": "Launch Chrome against frontend dev server",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/frontend"
     },
     {
-      "name": "Debug Jest All Tests",
-      "type": "node",
+      "type": "chrome",
       "request": "launch",
-      "runtimeArgs": [
-        "--inspect-brk",
-        "${workspaceRoot}/node_modules/.bin/jest",
-        "--runInBand"
-      ],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    },
-    {
-      "name": "Debug Jest Test File",
-      "type": "node",
-      "request": "launch",
-      "runtimeArgs": [
-        "--inspect-brk",
-        "${workspaceRoot}/node_modules/.bin/jest",
-        "--runInBand"
-      ],
-      "args": ["${fileBasename}", "--no-cache"],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
+      "name": "Launch Chrome against backend served app",
+      "url": "http://localhost:13001",
+      "webRoot": "${workspaceFolder}/frontend"
     }
   ]
 }

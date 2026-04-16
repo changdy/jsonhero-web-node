@@ -43,7 +43,7 @@ Send your JSON to JSON Hero in a variety of ways
 - Raycast user? Check out our extension [here](https://www.raycast.com/maverickdotdev/open-in-json-hero)
 - Use the unofficial API:
 
-  - Make a `POST` request to `jsonhero.io/api/create.json` with the following JSON body:
+  - Make a `POST` request to `jsonhero.io/api/public/create` with the following JSON body:
 
   ```json
   {
@@ -60,7 +60,7 @@ Send your JSON to JSON Hero in a variety of ways
   {
     "id": "YKKduNySH7Ub",
     "title": "test 123",
-    "location": "https://jsonhero.io/j/YKKduNySH7Ub"
+    "location": "/j/YKKduNySH7Ub"
   }
   ```
 
@@ -140,20 +140,44 @@ You can also join our [Discord channel](https://discord.gg/JtBAxBr2m3) to hang o
 
 ## Developing
 
-To run locally, first clone the repo and install the dependencies:
+To run locally, first clone the repo and install the frontend and backend dependencies separately:
 
 ```bash
 git clone https://github.com/triggerdotdev/jsonhero-web.git
 cd jsonhero-web
-npm install
+npm install --prefix frontend
+npm install --prefix backend
 ```
 
-Then, create a file at the root of the repo called `.env` and set the `SESSION_SECRET` value:
+No environment variables are required for local development by default. If needed, you can create a root `.env` file and set optional values such as:
 
 ```
-SESSION_SECRET=abc123
+PORT=13001
 ```
 
-Then, run `npm run build` or `npm run dev` to build.
+For development, run:
 
-Now, run `npm start` and open your browser to `http://localhost:8787`
+```bash
+npm run dev
+```
+
+This starts:
+
+- the backend API on `http://localhost:13001`
+- the frontend dev server on `http://localhost:5173`
+
+The frontend uses Vite's `/api` proxy in development, so browser requests stay same-origin.
+
+To build the production assets, run:
+
+```bash
+npm run build
+```
+
+To start the production server after building, run:
+
+```bash
+npm start
+```
+
+Then open your browser to `http://localhost:13001`.

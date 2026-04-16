@@ -1,0 +1,125 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefix frontend
+          npm ci --prefix backend
+
+      - name: Build project
+        run: npm run build
+
+      - name: Prune backend dev dependencies
+        run: npm prune --prefix backend --omit=dev
+
+      - name: Clean node_modules for production
+        run: |
+          echo "Before cleanup:"
+          du -sh backend/node_modules/
+
+          # Remove source maps (biggest win: ~17 MB)
+          find backend/node_modules/ -name '*.map' -type f -delete
+
+          # Remove TypeScript declarations (not needed at runtime)
+          find backend/node_modules/ -name '*.d.ts' -o -name '*.d.mts' -o -name '*.d.cts' | xargs rm -f
+
+          # Remove docs, changelogs, licenses, readmes
+          find backend/node_modules/ -maxdepth 3 \( \
+            -iname 'README*' -o -iname 'CHANGELOG*' -o -iname 'CHANGES*' \
+            -o -iname 'HISTORY*' -o -iname 'AUTHORS*' -o -iname 'CONTRIBUTORS*' \
+            -o -iname '*.md' -o -iname '*.markdown' \
+          \) -type f -delete
+
+          # Remove test/docs/example directories
+          find backend/node_modules/ -maxdepth 3 -type d \( \
+            -name test -o -name tests -o -name __tests__ \
+            -o -name example -o -name examples \
+            -o -name docs -o -name doc \
+            -o -name '.github' \
+            -o -name benchmark -o -name benchmarks \
+          \) -exec rm -rf {} + 2>/dev/null || true
+
+          # Remove TypeScript source files (not needed at runtime)
+          find backend/node_modules/ -name '*.ts' ! -name '*.d.ts' -type f \
+            ! -path '*/dist/*' ! -path '*/lib/*' -delete 2>/dev/null || true
+
+          # Remove pure type-only packages (csstype is 1.2 MB of pure .d.ts)
+          rm -rf backend/node_modules/csstype
+
+          # Remove LICENSE files (saves space, dependencies already attributed)
+          find backend/node_modules/ -maxdepth 3 \( -iname 'LICENSE*' -o -iname 'LICENCE*' \) -type f -delete
+
+          echo "After cleanup:"
+          du -sh backend/node_modules/
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="build-$(TZ='Asia/Shanghai' date +'%y%m%d-%H-%M')"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "is_prerelease=false" >> $GITHUB_OUTPUT
+
+      - name: Package artifacts
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          ARCHIVE_NAME="jsonhero-web-node-dist-${VERSION}.tar.gz"
+          echo "Packaging artifacts as ${ARCHIVE_NAME}..."
+          tar -czf "${ARCHIVE_NAME}" backend/dist/ backend/public/ backend/package.json backend/node_modules/ README.md LICENSE
+          echo "Archive size: $(du -h "${ARCHIVE_NAME}" | cut -f1)"
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> $GITHUB_ENV
+
+      - name: Delete previous build releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Cleaning up previous build-* releases..."
+          gh release list --json tagName --limit 100 \
+            | jq -r '.[] | select(.tagName | startswith("build-")) | .tagName' \
+            | while IFS= read -r tag; do
+                echo "Deleting: $tag"
+                gh release delete "$tag" --yes --cleanup-tag 2>/dev/null || true
+              done
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version == github.ref_name && format('Release {0}', steps.version.outputs.version) || format('Build {0} ({1})', steps.version.outputs.version, github.event.head_commit.timestamp) }}
+          prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
+          body: |
+            ## Build Info
+            - **Version**: ${{ steps.version.outputs.version }}
+            - **Commit**: ${{ github.sha }}
+            - **Trigger**: ${{ github.event_name }}
+            - **Branch**: ${{ github.ref_name }}
+          files: |
+            jsonhero-web-node-dist-*.tar.gz
