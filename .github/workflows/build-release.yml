@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - main
+      - master
     tags:
       - 'v*'
 
@@ -83,7 +83,7 @@ jobs:
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION="${{ github.ref_name }}"
           else
-            VERSION="build-$(TZ='Asia/Shanghai' date +'%y%m%d-%H-%M')"
+            VERSION="build-$(TZ='Asia/Shanghai' date +'%y-%m-%d_%H-%M')"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "is_prerelease=false" >> $GITHUB_OUTPUT
