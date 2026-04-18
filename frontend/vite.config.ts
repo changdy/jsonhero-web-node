@@ -54,7 +54,6 @@ export default defineConfig({
   },
   build: {
     outDir: "../backend/public/spa",
-    emptyOutDir: true,
-    sourcemap: true,
+    emptyOutDir: true
   },
 });

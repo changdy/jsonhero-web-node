@@ -30,6 +30,17 @@ JSON Hero makes reading and understand JSON files easy by giving you a clean and
 
 ![JSON Hero Screenshot](https://imagedelivery.net/3TbraffuDZ4aEf8KWOmI_w/0f5735b3-2421-470b-244c-7047fd77f700/public)
 
+## Architecture
+
+This repository now uses a standard frontend/backend split instead of the previous Remix full-stack setup.
+
+- `frontend/` contains the React 19 single-page application built with Vite and `react-router-dom`.
+- `backend/` contains the Express API responsible for document creation, retrieval, preview endpoints, and the public create API.
+- In development, the frontend runs on `http://localhost:5173` and proxies `/api` requests to the backend on `http://localhost:13001`.
+- In production, the frontend build output is written to `backend/public/spa`, and the backend serves both the API and the compiled SPA.
+
+This separation makes the app easier to reason about, run independently, and deploy in environments where a traditional Node API plus static frontend is preferred.
+
 ## Features
 
 ### Send to JSON Hero
@@ -134,20 +145,41 @@ Easily see all the related values across your entire JSON document for a specifi
 
 ## Bugs and Feature Requests
 
-Have a bug or a feature request? Feel free to [open a new issue](https://github.com/triggerdotdev/jsonhero-web/issues).
+Have a bug or a feature request? Feel free to [open a new issue](https://github.com/changdy/jsonhero-web-node/issues).
 
 You can also join our [Discord channel](https://discord.gg/JtBAxBr2m3) to hang out and discuss anything you'd like.
 
 ## Developing
 
-To run locally, first clone the repo and install the frontend and backend dependencies separately:
+### Requirements
+
+- Node.js `18` or newer
+- npm
+
+### Clone and install
+
+Clone the repo and install the frontend and backend dependencies separately:
 
 ```bash
-git clone https://github.com/triggerdotdev/jsonhero-web.git
-cd jsonhero-web
+git clone https://github.com/changdy/jsonhero-web-node.git
+cd jsonhero-web-node
 npm install --prefix frontend
 npm install --prefix backend
 ```
+
+The root `package.json` only orchestrates scripts. The runtime dependencies live in `frontend/` and `backend/`.
+
+### Project structure
+
+```text
+.
+├─ frontend/   # React + Vite SPA
+├─ backend/    # Express API and production static hosting
+├─ scripts/    # Root development helpers
+└─ README.md
+```
+
+### Environment variables
 
 No environment variables are required for local development by default. If needed, you can create a root `.env` file and set optional values such as:
 
@@ -155,7 +187,23 @@ No environment variables are required for local development by default. If neede
 PORT=13001
 ```
 
-For development, run:
+Notes:
+
+- `PORT` controls the backend port.
+- `SERVE_FRONTEND` is enabled automatically by `npm start` and usually does not need to be set manually.
+- `NODE_ENV=production` makes the backend serve the compiled SPA.
+
+### Available scripts
+
+- `npm run dev` starts both the backend watcher and the Vite dev server.
+- `npm run dev:backend` starts only the Express backend in watch mode.
+- `npm run dev:frontend` starts only the Vite frontend.
+- `npm run build` builds both frontend and backend production artifacts.
+- `npm start` starts the compiled backend and serves the built SPA.
+
+### Development mode
+
+From the repository root, run:
 
 ```bash
 npm run dev
@@ -168,16 +216,38 @@ This starts:
 
 The frontend uses Vite's `/api` proxy in development, so browser requests stay same-origin.
 
-To build the production assets, run:
+### Production build
+
+Build the production assets from the repository root:
 
 ```bash
 npm run build
 ```
 
-To start the production server after building, run:
+This does two things:
+
+- builds the React app into `backend/public/spa`
+- compiles the backend TypeScript into `backend/dist`
+
+Then start the production server:
 
 ```bash
 npm start
 ```
 
 Then open your browser to `http://localhost:13001`.
+
+### API overview
+
+The backend exposes the following main endpoints:
+
+- `GET /api/docs/:id` fetch a stored document and its parsed JSON
+- `GET /api/docs/:id/raw` fetch the raw JSON payload
+- `POST /api/docs/:id/update` update a document title
+- `DELETE /api/docs/:id` delete a document
+- `GET /api/create` create a document from a URL or base64 payload
+- `POST /api/create/file` create a document from uploaded raw JSON
+- `POST /api/create/url` create a document from a URL or raw JSON text
+- `POST /api/public/create` public CORS-enabled document creation endpoint
+
+If you are self-hosting this project, these endpoints replace the old Remix loader/action flow with explicit JSON APIs handled by Express.
